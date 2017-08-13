@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # Start MySQL
-#sudo service mysql start
+service mysql start
 
 # Regrant access to debian user
 # mysql -s -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED BY 'X0dRgHfyx3OyAL5h';"
