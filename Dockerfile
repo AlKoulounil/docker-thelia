@@ -119,17 +119,16 @@ RUN dos2unix /var/www/html/php_info.php
 # Configure PHP
 ADD config/php/xdebug.ini /etc/php/7.0/apache2/conf.d/20-xdebug.ini
 RUN dos2unix /etc/php/7.0/apache2/conf.d/20-xdebug.ini
+RUN sed -ie 's/safe_mode\ =\ Off/safe_mode\ =\ On/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/memory_limit\ =\ 128M/memory_limit\ =\ 2G/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/\;date\.timezone\ =/date\.timezone\ =\ Europe\/Paris/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/upload_max_filesize\ =\ 2M/upload_max_filesize\ =\ 200M/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/post_max_size\ =\ 8M/post_max_size\ =\ 200M/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/display_errors\ =\ Off/display_errors\ =\ On/g' /etc/php/7.0/apache2/php.ini
 
-
 RUN sed -ie 's/post_max_size\ =\ 8M/post_max_size\ =\ 200M/g' /etc/php/7.0/cli/php.ini
 
 # Install composer
-RUN echo "test"
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Git Global
@@ -178,9 +177,10 @@ WORKDIR /app
 
 #Allowing write rights on /var folders
 RUN mkdir /var/sessions
-RUN chmod 775 -R /var/sessions/
-RUN chmod 775 -R /var/log/
-RUN chmod 775 -R /var/cache/
+RUN chmod 777 -R /var/sessions/
+RUN chmod 777 -R /var/log/
+RUN chmod 777 -R /var/cache/
+RUN chmod 777 -R /var/lib/php/sessions
 
 # Configure persistent Volumes
 VOLUME ["/var/lib/mysql"]

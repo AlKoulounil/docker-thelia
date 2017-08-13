@@ -8,9 +8,9 @@ service mysql start
 
 # Create database and user if not exists
 if ! mysql -s -u root -e 'use acrimed_thelia2' 2>/dev/null; then
+	composer install
+	mysql -s -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'thelia'@'localhost' IDENTIFIED BY '';"
 	mysql -s -u root --host=localhost < database_dump/test.sql
-	mysql -s -u root --host=localhost < database_dump/clean_db.sql
-	mysql -s -u root -e 'INSERT INTO `config` (`name`, `value`, `secured`, `hidden`, `created_at`, `updated_at`) VALUES (\'session_config.save_path\', \'/var/lib/php/sessions/\', 0, 0, NOW(), NOW())'
 fi
 
 # Start Apache
