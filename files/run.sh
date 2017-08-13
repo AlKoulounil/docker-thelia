@@ -1,25 +1,17 @@
 #!/bin/zsh
 
-# Start SSH
-service ssh start
-
 # Start MySQL
-service mysql start
+#sudo service mysql start
 
 # Regrant access to debian user
 # mysql -s -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED BY 'X0dRgHfyx3OyAL5h';"
 
 # Create database and user if not exists
-if ! mysql -s -u root -e 'use laravel' 2>/dev/null; then
-	mysql -u root -e "create database laravel; grant usage on *.* to laravel@localhost identified by 'laravel'; grant all privileges on laravel.* to laravel@localhost;";
+if ! mysql -s -u root -e 'use acrimed_thelia2' 2>/dev/null; then
+	mysql -s -u root --host=localhost < database_dump/test.sql
+	mysql -s -u root --host=localhost < database_dump/clean_db.sql
+	mysql -s -u root -e 'INSERT INTO `config` (`name`, `value`, `secured`, `hidden`, `created_at`, `updated_at`) VALUES (\'session_config.save_path\', \'/var/lib/php/sessions/\', 0, 0, NOW(), NOW())'
 fi
-
-# Start Redis
-service redis-server start
-
-# Start Supervisord
-service supervisor start
-chmod 755 /var/log/supervisor
 
 # Start Apache
 service apache2 start

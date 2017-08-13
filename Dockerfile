@@ -22,7 +22,8 @@ RUN apt-get update
 RUN apt-get update && apt-get install -y \
 apt-utils \
 curl \
-wget
+wget \
+dos2unix
 
 # Add dotdeb
 RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
@@ -58,7 +59,6 @@ apache2-utils \
 php7.0 \
 php7.0-apcu \
 php7.0-mysql \
-php7.0-redis \
 php7.0-mbstring \
 php7.0-opcache \
 php7.0-xml \
@@ -67,6 +67,9 @@ php7.0-mcrypt \
 php7.0-curl \
 php7.0-zip \
 php7.0-bz2 \
+php7.0-intl \
+php7.0-gd \
+php7.0-calendar \
 telnet \
 unzip \
 nodejs
@@ -77,13 +80,9 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 
 # Configure System
 ADD config/system/rc.local /etc/rc.local
+RUN dos2unix /etc/rc.local
 ADD config/system/motd /etc/motd
-
-# Configure Supervisord
-ADD config/supervisor/app.conf /etc/supervisor/conf.d/app.conf
-
-# Configure SSH Server
-RUN sed -ie 's/PermitRootLogin without-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+RUN dos2unix /etc/motd
 
 # Set root password
 RUN echo "root:root" | chpasswd
@@ -106,50 +105,59 @@ RUN echo 'alias xdebug="export XDEBUG_CONFIG=\"idekey=PHPSTORM\""' >> /etc/zsh/z
 
 # Configure MySQL
 ADD config/mysql/debian.cfg /etc/mysql/debian.cfg
+RUN dos2unix /etc/mysql/debian.cfg
 
 # Configure Apache
 RUN a2enmod rewrite
 ADD config/apache/app.conf /etc/apache2/sites-enabled/000-default.conf
+RUN dos2unix /etc/apache2/sites-enabled/000-default.conf
 RUN rm /var/www/html/index.html
 ADD files/app_tools /var/www/html
+ADD files/app_tools/php_info.php /var/www/html/php_info.php
+RUN dos2unix /var/www/html/php_info.php
 
 # Configure PHP
 ADD config/php/xdebug.ini /etc/php/7.0/apache2/conf.d/20-xdebug.ini
+RUN dos2unix /etc/php/7.0/apache2/conf.d/20-xdebug.ini
 RUN sed -ie 's/memory_limit\ =\ 128M/memory_limit\ =\ 2G/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/\;date\.timezone\ =/date\.timezone\ =\ Europe\/Paris/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/upload_max_filesize\ =\ 2M/upload_max_filesize\ =\ 200M/g' /etc/php/7.0/apache2/php.ini
 RUN sed -ie 's/post_max_size\ =\ 8M/post_max_size\ =\ 200M/g' /etc/php/7.0/apache2/php.ini
+RUN sed -ie 's/display_errors\ =\ Off/display_errors\ =\ On/g' /etc/php/7.0/apache2/php.ini
+
+
+RUN sed -ie 's/post_max_size\ =\ 8M/post_max_size\ =\ 200M/g' /etc/php/7.0/cli/php.ini
 
 # Install composer
+RUN echo "test"
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Git Global
 ADD files/gitignore-global /root/.gitignore-global
+RUN dos2unix /root/.gitignore-global
 RUN git config --global core.excludesfile ~/.gitignore-global
 RUN git config --global --add oh-my-zsh.hide-dirty 1
 
 # Ngrok
 ADD files/ngrok /usr/local/bin/ngrok
+RUN dos2unix /usr/local/bin/ngrok
 RUN chmod +x /usr/local/bin/ngrok
 
 # Install PHPMyAdmin
 RUN cd /var/www/html; git clone --depth=1 https://github.com/phpmyadmin/phpmyadmin.git;
 RUN cd /var/www/html/phpmyadmin; composer install
 ADD config/phpmyadmin/config.inc.php /var/www/html/phpmyadmin/config.inc.php
+RUN dos2unix /var/www/html/phpmyadmin/config.inc.php
 
 # Install PimpMyLogs
 RUN cd /var/www/html; git clone https://github.com/potsky/PimpMyLog.git
 ADD config/pimpmylog/config.user.json /var/www/html/PimpMyLog/config.user.json
-
-# Install PHPRedMin
-RUN cd /var/www/html; git clone https://github.com/sasanrose/phpredmin.git
-ADD config/phpredmin/config.php /var/www/html/phpredmin/config.php
+RUN dos2unix /var/www/html/PimpMyLog/config.user.json
 
 # Install MailDev
 RUN npm install -g maildev
 
 # Envoy
-RUN composer global require "laravel/envoy=~1.0"
 RUN echo "" >> /root/.zshrc
 RUN echo "export PATH=\$HOME/.composer/vendor/bin:\$HOME/bin:/usr/local/bin:\$PATH" >> /root/.zshrc
 
@@ -164,9 +172,15 @@ RUN chsh -s /bin/zsh root
 EXPOSE 22
 EXPOSE 80
 
-# Link Laravel App
+# Link Thelia App
 RUN mkdir /app
 WORKDIR /app
+
+#Allowing write rights on /var folders
+RUN mkdir /var/sessions
+RUN chmod 775 -R /var/sessions/
+RUN chmod 775 -R /var/log/
+RUN chmod 775 -R /var/cache/
 
 # Configure persistent Volumes
 VOLUME ["/var/lib/mysql"]
@@ -174,6 +188,7 @@ VOLUME ["/var/lib/mysql"]
 # Run
 RUN mkdir -p /root/script /root/config
 ADD files/run.sh /root/script/run.sh
+RUN dos2unix /root/script/run.sh
 RUN chmod +x /root/script/run.sh
 
 CMD [ "/root/script/run.sh" ]
