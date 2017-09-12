@@ -10,7 +10,10 @@ service mysql start
 if ! mysql -s -u root -e 'use acrimed_thelia2' 2>/dev/null; then
 	composer install
 	mysql -s -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'thelia'@'localhost' IDENTIFIED BY '';"
-	mysql -s -u root --host=localhost < database_dump/test.sql
+	mkdir /app/local/session
+	php Thelia thelia:install -vvv --db_host localhost --db_port 3306 --db_username thelia --db_password --db_name acrimed_thelia2 --no-interaction
+	mysql -s -u root --host=localhost < /app/database/full_test_import.sql
+	php thelia cache:clear
 fi
 
 # Start Apache
