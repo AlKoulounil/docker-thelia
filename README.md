@@ -127,6 +127,10 @@ docker run --rm -v /path/to/your/laravel/app:/app -v mysql:/var/lib/mysql -i -p 
 
 ### 6. Known issues
 
-Some issues have not been solved yet with this docker
+Some issues have not been solved yet with this docker, please update documentation if you do them :
+* Product images are not displayed
+* Some payments have not yet been tested
+* Tests of e-mail sendings with MailDev have not been done yet.
+* Debugging with xDebug has not yet been tried
 
 ---
