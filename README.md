@@ -113,7 +113,7 @@ Simply run `ngrok http 80` and copy the forward address <http://xxxxxxxx.ngrok.i
 
 ### 5. Dev on this image
 
-Build the new image
+After locally retrieved the image with docker pull, Build the new image :
 
 ```
 docker build -t my_thelia .
@@ -123,6 +123,30 @@ Run the dev image
 
 ```
 docker run --rm -v /path/to/your/laravel/app:/app -v mysql:/var/lib/mysql -i -p 2780:80 -p 2722:22 -t my_thelia
+```
+
+Find running images
+
+```
+docker images
+```
+
+Commit changes
+
+```
+docker commit image_hash acrimed/thelia
+```
+
+Login to docker hub :
+
+```
+docker login
+```
+
+Push changes (needs to ask to be set as collaborator before) :
+
+```
+docker push acrimed/thelia
 ```
 
 ### 6. Known issues
